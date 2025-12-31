@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:geolocator/geolocator.dart';
 
 void main() {
   runApp(const SafeHerApp());
@@ -32,12 +33,45 @@ class SafeHerHome extends StatefulWidget {
 class _SafeHerHomeState extends State<SafeHerHome> {
   String statusText = 'SAFEHER – Women Safety Alert App';
 
-  void triggerSOS() {
-    setState(() {
-      statusText = '🚨 SOS TRIGGERED 🚨';
-    });
-    debugPrint('SOS Triggered');
+  void triggerSOS() async {
+  String locationLink = await getCurrentLocation();
+
+  setState(() {
+    statusText =
+        '🚨 SOS TRIGGERED 🚨\n\nLocation:\n$locationLink';
+  });
+
+  debugPrint('SOS Triggered');
+  debugPrint(locationLink);
+}
+
+  Future<String> getCurrentLocation() async {
+  bool serviceEnabled;
+  LocationPermission permission;
+
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    return 'Location services are disabled';
   }
+
+  permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      return 'Location permission denied';
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    return 'Location permission permanently denied';
+  }
+
+  Position position = await Geolocator.getCurrentPosition(
+    desiredAccuracy: LocationAccuracy.high,
+  );
+
+  return 'https://www.google.com/maps?q=${position.latitude},${position.longitude}';
+}
 
   @override
   Widget build(BuildContext context) {
