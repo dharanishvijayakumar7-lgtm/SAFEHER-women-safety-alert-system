@@ -31,104 +31,199 @@ class SafeHerHome extends StatefulWidget {
 }
 
 class _SafeHerHomeState extends State<SafeHerHome> {
-  String statusText = 'SAFEHER – Women Safety Alert App';
+  Future<String> getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return 'Location services are disabled';
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return 'Location permission denied';
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return 'Location permission permanently denied';
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    return 'https://www.google.com/maps?q=${position.latitude},${position.longitude}';
+  }
 
   void triggerSOS() async {
-  String locationLink = await getCurrentLocation();
+    String locationLink = await getCurrentLocation();
 
-  setState(() {
-    statusText =
-        '🚨 SOS TRIGGERED 🚨\n\nLocation:\n$locationLink';
-  });
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text(
+            '🚨 SOS Triggered',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.red,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Your live location has been captured.',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'Location:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                locationLink,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'This will be sent to your emergency contacts.',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
 
-  debugPrint('SOS Triggered');
-  debugPrint(locationLink);
-}
-
-  Future<String> getCurrentLocation() async {
-  bool serviceEnabled;
-  LocationPermission permission;
-
-  serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    return 'Location services are disabled';
+    debugPrint('SOS Triggered');
+    debugPrint(locationLink);
   }
-
-  permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
-      return 'Location permission denied';
-    }
-  }
-
-  if (permission == LocationPermission.deniedForever) {
-    return 'Location permission permanently denied';
-  }
-
-  Position position = await Geolocator.getCurrentPosition(
-    desiredAccuracy: LocationAccuracy.high,
-  );
-
-  return 'https://www.google.com/maps?q=${position.latitude},${position.longitude}';
-}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SAFEHER'),
-        backgroundColor: Colors.red,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              statusText,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 30),
-
-            // Manage Contacts Button
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        const EmergencyContactsScreen(),
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFFFEBEE),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.shield_rounded,
+                  size: 90,
+                  color: Colors.red,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'SAFEHER',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
                   ),
-                );
-              },
-              child: const Text('Manage Emergency Contacts'),
-            ),
-
-            const SizedBox(height: 20),
-
-            // SOS Button
-            ElevatedButton(
-              onPressed: triggerSOS,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 50,
-                  vertical: 20,
                 ),
-              ),
-              child: const Text(
-                'SOS',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                const SizedBox(height: 6),
+                const Text(
+                  'Women Safety Alert System',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
                 ),
-              ),
+                const SizedBox(height: 40),
+
+                // BIG SOS BUTTON
+                GestureDetector(
+                  onTap: triggerSOS,
+                  child: Container(
+                    height: 160,
+                    width: 160,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.red,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.red.withOpacity(0.4),
+                          blurRadius: 25,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'SOS',
+                        style: TextStyle(
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            const EmergencyContactsScreen(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.contacts),
+                  label: const Text(
+                    'Manage Emergency Contacts',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22,
+                      vertical: 14,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -149,10 +244,8 @@ class _EmergencyContactsScreenState
     extends State<EmergencyContactsScreen> {
   List<Map<String, String>> contacts = [];
 
-  final TextEditingController nameController =
-      TextEditingController();
-  final TextEditingController phoneController =
-      TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
 
   @override
   void initState() {
@@ -162,14 +255,13 @@ class _EmergencyContactsScreenState
 
   Future<void> loadContacts() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String>? storedContacts =
-        prefs.getStringList('contacts');
+    final List<String>? stored = prefs.getStringList('contacts');
 
-    if (storedContacts != null) {
+    if (stored != null) {
       setState(() {
-        contacts = storedContacts
-            .map((e) => Map<String, String>.from(
-                Uri.splitQueryString(e)))
+        contacts = stored
+            .map((e) =>
+                Map<String, String>.from(Uri.splitQueryString(e)))
             .toList();
       });
     }
@@ -177,10 +269,10 @@ class _EmergencyContactsScreenState
 
   Future<void> saveContacts() async {
     final prefs = await SharedPreferences.getInstance();
-    final List<String> encodedContacts = contacts
+    final encoded = contacts
         .map((e) => Uri(queryParameters: e).query)
         .toList();
-    await prefs.setStringList('contacts', encodedContacts);
+    await prefs.setStringList('contacts', encoded);
   }
 
   void addContact() {
@@ -192,14 +284,11 @@ class _EmergencyContactsScreenState
           'phone': phoneController.text,
         });
       });
-
       saveContacts();
-
       nameController.clear();
       phoneController.clear();
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
