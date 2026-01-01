@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const SafeHerApp());
@@ -31,6 +32,9 @@ class SafeHerHome extends StatefulWidget {
 }
 
 class _SafeHerHomeState extends State<SafeHerHome> {
+
+  /* -------- LOCATION -------- */
+
   Future<String> getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
@@ -59,8 +63,36 @@ class _SafeHerHomeState extends State<SafeHerHome> {
     return 'https://www.google.com/maps?q=${position.latitude},${position.longitude}';
   }
 
+  /* -------- SMS SENDING -------- */
+
+  Future<void> sendSMS(String message) async {
+  const String phoneNumber = '+916361754795'; // <-- your number
+
+  final Uri smsUri = Uri.parse(
+    'sms:$phoneNumber?body=${Uri.encodeComponent(message)}',
+  );
+
+  await launchUrl(
+    smsUri,
+    mode: LaunchMode.externalApplication,
+  );
+}
+
+
+  /* -------- SOS TRIGGER -------- */
+
   void triggerSOS() async {
     String locationLink = await getCurrentLocation();
+
+    String message = '''
+🚨 EMERGENCY ALERT 🚨
+I am in danger. Please help me.
+
+My live location:
+$locationLink
+''';
+
+    await sendSMS(message);
 
     showDialog(
       context: context,
@@ -74,33 +106,9 @@ class _SafeHerHomeState extends State<SafeHerHome> {
               color: Colors.red,
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Your live location has been captured.',
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'Location:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                locationLink,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue,
-                ),
-              ),
-              const SizedBox(height: 10),
-              const Text(
-                'This will be sent to your emergency contacts.',
-                style: TextStyle(fontSize: 14),
-              ),
-            ],
+          content: const Text(
+            'Emergency SMS has been prepared.\n\nPlease press SEND in the SMS app.',
+            style: TextStyle(fontSize: 16),
           ),
           actions: [
             TextButton(
@@ -113,10 +121,9 @@ class _SafeHerHomeState extends State<SafeHerHome> {
         );
       },
     );
-
-    debugPrint('SOS Triggered');
-    debugPrint(locationLink);
   }
+
+  /* -------- UI -------- */
 
   @override
   Widget build(BuildContext context) {
@@ -163,7 +170,6 @@ class _SafeHerHomeState extends State<SafeHerHome> {
                 ),
                 const SizedBox(height: 40),
 
-                // BIG SOS BUTTON
                 GestureDetector(
                   onTap: triggerSOS,
                   child: Container(
@@ -210,15 +216,6 @@ class _SafeHerHomeState extends State<SafeHerHome> {
                   label: const Text(
                     'Manage Emergency Contacts',
                     style: TextStyle(fontSize: 16),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 22,
-                      vertical: 14,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
                   ),
                 ),
               ],
@@ -303,16 +300,14 @@ class _EmergencyContactsScreenState
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(
-                labelText: 'Contact Name',
-              ),
+              decoration:
+                  const InputDecoration(labelText: 'Contact Name'),
             ),
             const SizedBox(height: 10),
             TextField(
               controller: phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone Number',
-              ),
+              decoration:
+                  const InputDecoration(labelText: 'Phone Number'),
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 15),
