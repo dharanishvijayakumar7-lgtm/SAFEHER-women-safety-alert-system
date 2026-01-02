@@ -2,8 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'services/firebase_service.dart';
+import 'services/sms_service.dart';
+import 'services/trusted_contacts_service.dart';
+import 'screens/trusted_contacts_screen.dart';
+import 'package:firebase_core/firebase_core.dart';
+/* -------------------- MAIN ENTRY POINT -------------------- */
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await FirebaseService.initializeFirebase();
   runApp(const SafeHerApp());
 }
 
@@ -32,6 +40,9 @@ class SafeHerHome extends StatefulWidget {
 }
 
 class _SafeHerHomeState extends State<SafeHerHome> {
+  final SMSService _smsService = SMSService();
+  final TrustedContactsService _contactsService = TrustedContactsService();
+  final FirebaseService _firebaseService = FirebaseService();
 
   /* -------- LOCATION -------- */
 
@@ -63,64 +74,130 @@ class _SafeHerHomeState extends State<SafeHerHome> {
     return 'https://www.google.com/maps?q=${position.latitude},${position.longitude}';
   }
 
-  /* -------- SMS SENDING -------- */
-
-  Future<void> sendSMS(String message) async {
-  const String phoneNumber = '+916361754795'; // <-- your number
-
-  final Uri smsUri = Uri.parse(
-    'sms:$phoneNumber?body=${Uri.encodeComponent(message)}',
-  );
-
-  await launchUrl(
-    smsUri,
-    mode: LaunchMode.externalApplication,
-  );
-}
-
-
   /* -------- SOS TRIGGER -------- */
 
   void triggerSOS() async {
-    String locationLink = await getCurrentLocation();
+    String userId = _firebaseService.getCurrentUserId() ?? '';
+    
+    if (userId.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please login first')),
+        );
+      }
+      return;
+    }
 
-    String message = '''
+    try {
+      String locationLink = await getCurrentLocation();
+      List<TrustedContact> trustedContacts = 
+          await _contactsService.getTrustedContacts(userId);
+
+      if (trustedContacts.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Please add trusted contacts first'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      List<String> phoneNumbers = 
+          trustedContacts.map((c) => c.phoneNumber).toList();
+
+      String message = '''
 🚨 EMERGENCY ALERT 🚨
-I am in danger. Please help me.
+I am in danger. Please help me immediately!
 
 My live location:
 $locationLink
+
+Sent from SafeHer - Women Safety Alert System
 ''';
 
-    await sendSMS(message);
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text(
-            '🚨 SOS Triggered',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-            ),
-          ),
-          content: const Text(
-            'Emergency SMS has been prepared.\n\nPlease press SEND in the SMS app.',
-            style: TextStyle(fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('OK'),
-            ),
-          ],
+      // Show dialog before sending
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text(
+                '🚨 SOS Alert',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              content: Text(
+                'Sending emergency SMS to ${trustedContacts.length} trusted contact(s)...',
+                style: const TextStyle(fontSize: 16),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
         );
-      },
-    );
+      }
+
+      // Send SMS to all trusted contacts
+      Map<String, bool> results = await _smsService.sendEmergencySms(
+        trustedContactNumbers: phoneNumbers,
+        userLocation: locationLink,
+        customMessage: message,
+      );
+
+      // Count successful sends
+      int successCount = results.values.where((v) => v).length;
+
+      if (mounted) {
+        Navigator.pop(context); // Close the dialog
+        
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text(
+                '🚨 SOS Triggered',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.red,
+                ),
+              ),
+              content: Text(
+                'Emergency SMS sent to $successCount out of ${trustedContacts.length} contact(s).',
+                style: const TextStyle(fontSize: 16),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      print('Error triggering SOS: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
   }
 
   /* -------- UI -------- */
@@ -208,13 +285,13 @@ $locationLink
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            const EmergencyContactsScreen(),
+                            const TrustedContactsScreen(),
                       ),
                     );
                   },
                   icon: const Icon(Icons.contacts),
                   label: const Text(
-                    'Manage Emergency Contacts',
+                    'Manage Trusted Contacts',
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
@@ -227,110 +304,3 @@ $locationLink
   }
 }
 
-/* -------------------- EMERGENCY CONTACTS SCREEN -------------------- */
-
-class EmergencyContactsScreen extends StatefulWidget {
-  const EmergencyContactsScreen({super.key});
-
-  @override
-  State<EmergencyContactsScreen> createState() =>
-      _EmergencyContactsScreenState();
-}
-
-class _EmergencyContactsScreenState
-    extends State<EmergencyContactsScreen> {
-  List<Map<String, String>> contacts = [];
-
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController phoneController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    loadContacts();
-  }
-
-  Future<void> loadContacts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final List<String>? stored = prefs.getStringList('contacts');
-
-    if (stored != null) {
-      setState(() {
-        contacts = stored
-            .map((e) =>
-                Map<String, String>.from(Uri.splitQueryString(e)))
-            .toList();
-      });
-    }
-  }
-
-  Future<void> saveContacts() async {
-    final prefs = await SharedPreferences.getInstance();
-    final encoded = contacts
-        .map((e) => Uri(queryParameters: e).query)
-        .toList();
-    await prefs.setStringList('contacts', encoded);
-  }
-
-  void addContact() {
-    if (nameController.text.isNotEmpty &&
-        phoneController.text.isNotEmpty) {
-      setState(() {
-        contacts.add({
-          'name': nameController.text,
-          'phone': phoneController.text,
-        });
-      });
-      saveContacts();
-      nameController.clear();
-      phoneController.clear();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Emergency Contacts'),
-        backgroundColor: Colors.red,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: nameController,
-              decoration:
-                  const InputDecoration(labelText: 'Contact Name'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: phoneController,
-              decoration:
-                  const InputDecoration(labelText: 'Phone Number'),
-              keyboardType: TextInputType.phone,
-            ),
-            const SizedBox(height: 15),
-            ElevatedButton(
-              onPressed: addContact,
-              child: const Text('Add Contact'),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: contacts.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    leading: const Icon(Icons.person),
-                    title: Text(contacts[index]['name']!),
-                    subtitle: Text(contacts[index]['phone']!),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

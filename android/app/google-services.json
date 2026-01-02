@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "533869887802",
+    "project_id": "safeh3r-hackathon",
+    "storage_bucket": "safeh3r-hackathon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533869887802:android:7b224e9187b15101a85003",
+        "android_client_info": {
+          "package_name": "com.example.safeher"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPtGtjM7MA2rxHnXV1RBBxsf1P8oCPUps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
