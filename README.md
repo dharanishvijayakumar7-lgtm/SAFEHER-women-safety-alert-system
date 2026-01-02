@@ -1,75 +1,57 @@
-# 🚺 SAFEHER — Women Safety Alert System
+# 🚺 SAFEHER – Women Safety Alert System
 
 [![GitHub Repo Size](https://img.shields.io/github/repo-size/dharanishvijayakumar7-lgtm/SAFEHER-women-safety-alert-system)](https://github.com/dharanishvijayakumar7-lgtm/SAFEHER-women-safety-alert-system)
-[![License](https://img.shields.io/github/license/dharanishvijayakumar7-lgtm/SAFEHER-women-safety-alert-system)]()
+[![Tech Stack](https://img.shields.io/badge/Tech-Flutter%20%7C%20Firebase-brightgreen)]()
 [![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue)]()
 
-SAFEHER is a **comprehensive and intelligent Women Safety Alert mobile app** designed to empower women with real-time security tools and crisis response systems. It helps users stay safe, share live locations, and quickly notify trusted contacts and authorities in emergencies.
+## 🚨 Overview
 
-> Empowering every woman with confidence, safety, and peace of mind. 🚨
-
----
-
-## 🧠 What is SAFEHER?
-
-SAFEHER is a mobile safety solution built with Flutter (supporting Android & iOS) that enables women to:
-- Send **instant SOS alerts**
-- Share **live location tracking**
-- Trigger alerts using **multiple methods**
-- Maintain a circle of **trusted emergency contacts**
-
-The app aims to **reduce response time**, **enhance situational awareness**, and **provide a safety network** for users through intuitive design and smart features.
+**SAFEHER** is a mobile application designed to enhance personal safety for women by providing fast, reliable emergency alerts, live location sharing, and smart triggering methods. It acts as a **trusted companion in critical situations** and empowers users with proactive safety tools.:contentReference[oaicite:1]{index=1}
 
 ---
 
-## ✨ Core Features
+## ⭐ Key Features
 
-### 🚨 Emergency Response
-- **SOS Alert:** Instantly send distress messages with your current location.
-- **Auto-Trigger Alerts:** *Shake detection*, *long-press*, or real-time triggers to send alerts even when unable to type. :contentReference[oaicite:0]{index=0}
-- **Emergency Contacts:** Add guardians who receive alerts immediately.
+### 🔥 Core Safety Alerts
+- **SOS/Panic Button:** Send instant alerts to emergency contacts.:contentReference[oaicite:2]{index=2}  
+- **Multi-Trigger Activation:** Long press, shake detection, or dedicated UI button.:contentReference[oaicite:3]{index=3}  
+- **Auto Message with GPS:** Sends current location in real-time when alert is triggered.:contentReference[oaicite:4]{index=4}
 
-### 📍 Location Intelligence
-- **Real-Time Location Sharing**: Broadcast your GPS position continuously.
-- **Route Tracking:** Show live movement to trusted contacts. :contentReference[oaicite:1]{index=1}
-- **ETA Notifications:** Let contacts see your estimated time of arrival. :contentReference[oaicite:2]{index=2}
+### 📍 Real-Time Tracking
+- **Live Location Sharing:** Shared with contacts for timely help.:contentReference[oaicite:5]{index=5}  
+- **Continuous GPS Updates:** Contacts can follow user movement until safe.:contentReference[oaicite:6]{index=6}
 
-### 🛡️ Smart Safety Tools
-- **Intuitive Panic Button**
-- **Voice Trigger & Silent Alarms**
-- **Offline Capabilities** (SOS works even with low connectivity) :contentReference[oaicite:3]{index=3}
-- **Secure Authentication & Privacy Settings**
+### 📞 Emergency Preparedness
+- **Emergency Contacts List** — Add trusted guardians/family.:contentReference[oaicite:7]{index=7}  
+- **Automatic Notifications:** SMS, Email, or push alerts sent instantly.:contentReference[oaicite:8]{index=8}
 
-### 🧠 Advanced Possibilities (Future)
-> *AI-powered threat detection, community reporting, video evidence capture, and safety scoring.* :contentReference[oaicite:4]{index=4}
+### 🛡️ Optional Extensions (Future Enhancements)
+> *AI threat detection, self-defense content, safe routes, incident recording.*:contentReference[oaicite:9]{index=9}
 
 ---
 
-## 📊 Outcomes & Impact
+## 📊 Impact & Outcomes
 
-Implementing SAFEHER delivers significant real-world benefits:
+SAFEHER helps achieve:
 
-| Outcome | Impact |
-|---------|--------|
-| Faster Emergency Response | Helps quick assistance via trusted contacts & authorities. |
-| Increased Situational Awareness | Real-time GPS sharing builds confidence when traveling. |
-| Community Safety | Shared alert data supports a safer environment. |
-| Peace of Mind | Users feel secure knowing help is just a tap away. |
+- ⏱️ **Faster Help Response** – Immediate alerts minimize delay.  
+- 🧭 **Increased Situational Awareness** – Contacts see live movement.  
+- 📱 **Confidence & Peace of Mind** – Easy one-touch safety support.
 
 ---
 
-## 🧩 How SAFEHER Works — Workflow Diagram
+## 🧠 How It Works — Workflow
 
 ```mermaid
 flowchart TD
-    A[User Opens SAFEHER App] --> B{User Status}
-    B -->|Normal| C[Home Screen]
-    C --> D[Add/Edit Emergency Contacts]
-    C --> E[Setup Profile & Preferences]
-    C --> F[Panic Alert Trigger]
-    F --> G[SOS Alert Sent]
-    G --> H[Send GPS Coordinates]
-    H --> I[Notify Emergency Contacts]
-    I --> J{Notify Authorities?}
-    J -->|Yes| K[Call Helpline / 112/1091]
-    J -->|No| L[Monitor & Track]
+    A[User Launches SAFEHER App] --> B{Logged In?}
+    B -->|No| C[Login / Register]
+    B -->|Yes| D[Home Dashboard]
+    D --> E[Setup Emergency Contacts]
+    D --> F[SOS Trigger (Button / Shake / Press)]
+    F --> G[Send Alert]
+    G --> H[Attach Live GPS Location]
+    H --> I[Notify Contacts]
+    I --> J{Follow-Up?}
+    J -->|Yes| K[Track Real Time Location]
+    J -->|No| L[Alert Logged]
