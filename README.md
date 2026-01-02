@@ -1,58 +1,69 @@
 # 🚺 SAFEHER – Women Safety Alert System
 
-[![GitHub Repo Size](https://img.shields.io/github/repo-size/dharanishvijayakumar7-lgtm/SAFEHER-women-safety-alert-system)](https://github.com/dharanishvijayakumar7-lgtm/SAFEHER-women-safety-alert-system)
-[![Tech Stack](https://img.shields.io/badge/Tech-Flutter%20%7C%20Firebase-brightgreen)]()
-[![Platform](https://img.shields.io/badge/Platform-Android%20%7C%20iOS-blue)]()
-
-## 🚨 Overview
-
-**SAFEHER** is a mobile application designed to enhance personal safety for women by providing fast, reliable emergency alerts, live location sharing, and smart triggering methods. It acts as a **trusted companion in critical situations** and empowers users with proactive safety tools.:contentReference[oaicite:1]{index=1}
+![Platform](https://img.shields.io/badge/Platform-Android-blue)
+![Tech](https://img.shields.io/badge/Tech%20Stack-Flutter%20%7C%20Firebase-brightgreen)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
 ---
 
-## ⭐ Key Features
+## 📌 Overview
 
-### 🔥 Core Safety Alerts
-- **SOS/Panic Button:** Send instant alerts to emergency contacts.:contentReference[oaicite:2]{index=2}  
-- **Multi-Trigger Activation:** Long press, shake detection, or dedicated UI button.:contentReference[oaicite:3]{index=3}  
-- **Auto Message with GPS:** Sends current location in real-time when alert is triggered.:contentReference[oaicite:4]{index=4}
+**SAFEHER** is a mobile-based Women Safety Alert System designed to provide immediate assistance during emergency situations.  
+The application enables users to send **instant SOS alerts**, share **real-time location**, and notify **trusted contacts** with minimal interaction.
 
-### 📍 Real-Time Tracking
-- **Live Location Sharing:** Shared with contacts for timely help.:contentReference[oaicite:5]{index=5}  
-- **Continuous GPS Updates:** Contacts can follow user movement until safe.:contentReference[oaicite:6]{index=6}
-
-### 📞 Emergency Preparedness
-- **Emergency Contacts List** — Add trusted guardians/family.:contentReference[oaicite:7]{index=7}  
-- **Automatic Notifications:** SMS, Email, or push alerts sent instantly.:contentReference[oaicite:8]{index=8}
-
-### 🛡️ Optional Extensions (Future Enhancements)
-> *AI threat detection, self-defense content, safe routes, incident recording.*:contentReference[oaicite:9]{index=9}
+SAFEHER acts as a **digital safety companion**, focusing on speed, reliability, and ease of use during critical moments.
 
 ---
 
-## 📊 Impact & Outcomes
+## 🎯 Objectives
 
-SAFEHER helps achieve:
-
-- ⏱️ **Faster Help Response** – Immediate alerts minimize delay.  
-- 🧭 **Increased Situational Awareness** – Contacts see live movement.  
-- 📱 **Confidence & Peace of Mind** – Easy one-touch safety support.
+- Provide quick emergency alert mechanisms
+- Reduce response time during unsafe situations
+- Enable real-time location sharing
+- Improve personal safety and confidence for women
 
 ---
 
-## 🧠 How It Works — Workflow
+## ⭐ Core Features
+
+### 🚨 Emergency Alerts
+- One-tap **SOS / Panic Button**
+- Sends emergency alert instantly
+- Automatically attaches live GPS location
+
+### 📍 Live Location Tracking
+- Real-time GPS location sharing
+- Continuous tracking until user is safe
+- Accurate location updates
+
+### 👥 Emergency Contacts
+- Add and manage trusted contacts
+- Automatic alert notifications
+- Easy and fast setup
+
+### 🛡️ Security & Reliability
+- Simple and user-friendly interface
+- Works efficiently even in stressful situations
+- Secure handling of user data
+
+### 🔮 Future Enhancements
+- Voice-based SOS activation
+- Device shake detection
+- AI-based threat detection
+- Incident recording and evidence capture
+- Safe route suggestions
+
+---
+
+## 🔄 Application Workflow
 
 ```mermaid
 flowchart TD
-    A[User Launches SAFEHER App] --> B{Logged In?}
+    A[Open SAFEHER App] --> B{User Logged In?}
     B -->|No| C[Login or Register]
-    B -->|Yes| D[Home Dashboard]
-    D --> E[Setup Emergency Contacts]
-    D --> F[SOS Trigger]
-    F --> G[Send Alert]
+    B -->|Yes| D[Home Screen]
+    D --> E[Add Emergency Contacts]
+    D --> F[Activate SOS]
+    F --> G[Send Emergency Alert]
     G --> H[Attach Live GPS Location]
     H --> I[Notify Emergency Contacts]
-**SOS Trigger Methods:**
-- Panic Button
-- Device Shake
-- Long Press Action
