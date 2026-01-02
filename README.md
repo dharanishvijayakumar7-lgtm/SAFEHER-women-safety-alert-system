@@ -45,13 +45,14 @@ SAFEHER helps achieve:
 ```mermaid
 flowchart TD
     A[User Launches SAFEHER App] --> B{Logged In?}
-    B -->|No| C[Login / Register]
+    B -->|No| C[Login or Register]
     B -->|Yes| D[Home Dashboard]
     D --> E[Setup Emergency Contacts]
-    D --> F[SOS Trigger (Button / Shake / Press)]
+    D --> F[SOS Trigger]
     F --> G[Send Alert]
     G --> H[Attach Live GPS Location]
-    H --> I[Notify Contacts]
-    I --> J{Follow-Up?}
-    J -->|Yes| K[Track Real Time Location]
-    J -->|No| L[Alert Logged]
+    H --> I[Notify Emergency Contacts]
+**SOS Trigger Methods:**
+- Panic Button
+- Device Shake
+- Long Press Action
