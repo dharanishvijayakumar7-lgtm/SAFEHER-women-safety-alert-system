@@ -67,3 +67,15 @@ flowchart TD
     F --> G[Send Emergency Alert]
     G --> H[Attach Live GPS Location]
     H --> I[Notify Emergency Contacts]
+
+##  TECHNOLOGIES USED
+| Category          | Technology      |
+| ----------------- | --------------- |
+| Frontend          | Flutter (Dart)  |
+| Backend           | Firebase        |
+| Authentication    | Firebase Auth   |
+| Database          | Cloud Firestore |
+| Location Services | Geolocator      |
+| Platform          | Android         |
+| Version Control   | Git & GitHub    |
+
