@@ -1,38 +1,45 @@
 {
   "project_info": {
-    "project_id": "safeher-test",
-    "project_number": "123456789",
-    "firebase_url": "https://safeher-test.firebaseio.com",
-    "project_name": "safeher-test",
-    "storage_bucket": "safeher-test.appspot.com"
+    "project_number": "533869887802",
+    "project_id": "safeh3r-hackathon",
+    "storage_bucket": "safeh3r-hackathon.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789:android:abcdef1234567890",
+        "mobilesdk_app_id": "1:533869887802:android:7b224e9187b15101a85003",
         "android_client_info": {
           "package_name": "com.example.safeher"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "123456789-abcdefg.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAbcdef1234567890abcdef1234567890abc"
+          "current_key": "AIzaSyCPtGtjM7MA2rxHnXV1RBBxsf1P8oCPUps"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "123456789-abcdefg.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:533869887802:android:a7dfae1ea6c884c4a85003",
+        "android_client_info": {
+          "package_name": "com.safeher.womensafety"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCPtGtjM7MA2rxHnXV1RBBxsf1P8oCPUps"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
         }
       }
     }

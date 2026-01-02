@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+
 import 'services/firebase_service.dart';
 import 'services/sms_service.dart';
 import 'services/trusted_contacts_service.dart';
 import 'screens/trusted_contacts_screen.dart';
 import 'screens/login_screen.dart';
+
 /* -------------------- MAIN ENTRY POINT -------------------- */
 
 void main() async {
@@ -20,10 +22,10 @@ class SafeHerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SAFEHER',
-      home: const AuthGate(),
+      home: AuthGate(),
     );
   }
 }
@@ -47,18 +49,14 @@ class _AuthGateState extends State<AuthGate> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          // User is logged in
           return const SafeHerHome();
         }
 
-        // User is not logged in
         return const LoginScreen();
       },
     );
@@ -76,7 +74,8 @@ class SafeHerHome extends StatefulWidget {
 
 class _SafeHerHomeState extends State<SafeHerHome> {
   final SMSService _smsService = SMSService();
-  final TrustedContactsService _contactsService = TrustedContactsService();
+  final TrustedContactsService _contactsService =
+      TrustedContactsService();
   final FirebaseService _firebaseService = FirebaseService();
 
   /* -------- LOCATION -------- */
@@ -99,7 +98,8 @@ class _SafeHerHomeState extends State<SafeHerHome> {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return 'Location permission permanently denied';
+      await Geolocator.openAppSettings();
+      return 'Location permission permanently denied. Please enable it from settings.';
     }
 
     Position position = await Geolocator.getCurrentPosition(
@@ -113,7 +113,7 @@ class _SafeHerHomeState extends State<SafeHerHome> {
 
   void triggerSOS() async {
     String userId = _firebaseService.getCurrentUserId() ?? '';
-    
+
     if (userId.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -125,7 +125,7 @@ class _SafeHerHomeState extends State<SafeHerHome> {
 
     try {
       String locationLink = await getCurrentLocation();
-      List<TrustedContact> trustedContacts = 
+      List<TrustedContact> trustedContacts =
           await _contactsService.getTrustedContacts(userId);
 
       if (trustedContacts.isEmpty) {
@@ -140,7 +140,7 @@ class _SafeHerHomeState extends State<SafeHerHome> {
         return;
       }
 
-      List<String> phoneNumbers = 
+      List<String> phoneNumbers =
           trustedContacts.map((c) => c.phoneNumber).toList();
 
       String message = '''
@@ -153,14 +153,13 @@ $locationLink
 Sent from SafeHer - Women Safety Alert System
 ''';
 
-      // Show dialog before sending
       if (mounted) {
         showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) {
-            return AlertDialog(
-              title: const Text(
+            return const AlertDialog(
+              title: Text(
                 '🚨 SOS Alert',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -168,35 +167,29 @@ Sent from SafeHer - Women Safety Alert System
                 ),
               ),
               content: Text(
-                'Sending emergency SMS to ${trustedContacts.length} trusted contact(s)...',
-                style: const TextStyle(fontSize: 16),
+                'Sending emergency SMS...',
+                style: TextStyle(fontSize: 16),
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
             );
           },
         );
       }
 
-      // Send SMS to all trusted contacts
-      Map<String, bool> results = await _smsService.sendEmergencySms(
+      Map<String, bool> results =
+          await _smsService.sendEmergencySms(
         trustedContactNumbers: phoneNumbers,
         userLocation: locationLink,
         customMessage: message,
       );
 
-      // Count successful sends
-      int successCount = results.values.where((v) => v).length;
+      int successCount =
+          results.values.where((v) => v).length;
 
       if (mounted) {
-        Navigator.pop(context); // Close the dialog
-        
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context); // close sending dialog
+        }
+
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -215,9 +208,7 @@ Sent from SafeHer - Women Safety Alert System
               ),
               actions: [
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   child: const Text('OK'),
                 ),
               ],
@@ -239,24 +230,20 @@ Sent from SafeHer - Women Safety Alert System
 
   @override
   Widget build(BuildContext context) {
-    String? userId = _firebaseService.getCurrentUserId();
-    String userName = _firebaseService.getCurrentUserName() ?? 'User';
+    String userName =
+        _firebaseService.getCurrentUserName() ?? 'User';
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('SAFEHER'),
         backgroundColor: Colors.red,
-        elevation: 0,
         actions: [
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Center(
               child: Text(
                 'Hello, $userName',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.white,
-                ),
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           ),
@@ -264,16 +251,11 @@ Sent from SafeHer - Women Safety Alert System
             onSelected: (value) async {
               if (value == 'logout') {
                 await _firebaseService.logout();
-                if (mounted) {
-                  Navigator.of(context).pushNamedAndRemoveUntil(
-                    '/',
-                    (route) => false,
-                  );
-                }
+                // AuthGate will handle navigation automatically
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
+            itemBuilder: (context) => const [
+              PopupMenuItem(
                 value: 'logout',
                 child: Text('Logout'),
               ),
@@ -281,102 +263,55 @@ Sent from SafeHer - Women Safety Alert System
           ),
         ],
       ),
-      body: Container(
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFFFEBEE),
-              Colors.white,
-            ],
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.shield_rounded,
-                  size: 90,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: triggerSOS,
+              child: Container(
+                height: 160,
+                width: 160,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
                   color: Colors.red,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'SAFEHER',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'Women Safety Alert System',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black54,
-                  ),
-                ),
-                const SizedBox(height: 40),
-
-                GestureDetector(
-                  onTap: triggerSOS,
-                  child: Container(
-                    height: 160,
-                    width: 160,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.red,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.red.withValues(alpha: 0.4),
-                          blurRadius: 25,
-                          spreadRadius: 5,
-                        ),
-                      ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.withOpacity(0.4),
+                      blurRadius: 25,
+                      spreadRadius: 5,
                     ),
-                    child: const Center(
-                      child: Text(
-                        'SOS',
-                        style: TextStyle(
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 2,
-                        ),
-                      ),
+                  ],
+                ),
+                child: const Center(
+                  child: Text(
+                    'SOS',
+                    style: TextStyle(
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 30),
-
-                OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const TrustedContactsScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.contacts),
-                  label: const Text(
-                    'Manage Trusted Contacts',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: 30),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const TrustedContactsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.contacts),
+              label: const Text('Manage Trusted Contacts'),
+            ),
+          ],
         ),
       ),
     );
   }
 }
-
