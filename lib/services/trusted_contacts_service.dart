@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TrustedContact {
@@ -65,8 +66,8 @@ class TrustedContactsService {
         'createdAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error adding trusted contact: $e');
-      throw e;
+      debugPrint('Error adding trusted contact: $e');
+      rethrow;
     }
   }
 
@@ -85,7 +86,7 @@ class TrustedContactsService {
               doc.data() as Map<String, dynamic>, doc.id))
           .toList();
     } catch (e) {
-      print('Error getting trusted contacts: $e');
+      debugPrint('Error getting trusted contacts: $e');
       return [];
     }
   }
@@ -110,8 +111,8 @@ class TrustedContactsService {
         'relationship': relationship,
       });
     } catch (e) {
-      print('Error updating trusted contact: $e');
-      throw e;
+      debugPrint('Error updating trusted contact: $e');
+      rethrow;
     }
   }
 
@@ -125,13 +126,17 @@ class TrustedContactsService {
           .doc(contactId)
           .delete();
     } catch (e) {
-      print('Error deleting trusted contact: $e');
-      throw e;
+      debugPrint('Error deleting trusted contact: $e');
+      rethrow;
     }
   }
 
   /// Stream of trusted contacts (real-time updates)
   Stream<List<TrustedContact>> getTrustedContactsStream(String userId) {
+    if (userId.isEmpty) {
+      return Stream.value([]);
+    }
+    
     return _firestore
         .collection('users')
         .doc(userId)
@@ -140,7 +145,7 @@ class TrustedContactsService {
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => TrustedContact.fromMap(
-                doc.data() as Map<String, dynamic>, doc.id))
+                doc.data(), doc.id))
             .toList());
   }
 }

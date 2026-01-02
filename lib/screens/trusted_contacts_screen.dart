@@ -320,12 +320,12 @@ class ContactListTile extends StatelessWidget {
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
             PopupMenuItem(
-              child: const Text('Edit'),
               onTap: onEdit,
+              child: const Text('Edit'),
             ),
             PopupMenuItem(
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
               onTap: onDelete,
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
         ),

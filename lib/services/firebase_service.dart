@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,21 +21,41 @@ class FirebaseService {
   }
 
   /// Sign up with email and password
-  Future<UserCredential?> signUpWithEmail(String email, String password) async {
+  Future<UserCredential?> signUpWithEmail({
+    required String email,
+    required String password,
+    required String displayName,
+  }) async {
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
+      
+      // Update display name
+      await userCredential.user?.updateDisplayName(displayName);
+      await userCredential.user?.reload();
+      
+      // Create user profile in Firestore
+      await createUserProfile(
+        userId: userCredential.user!.uid,
+        email: email,
+        displayName: displayName,
+        phoneNumber: '',
+      );
+      
       return userCredential;
     } catch (e) {
-      print('Sign up error: $e');
-      return null;
+      debugPrint('Sign up error: $e');
+      rethrow;
     }
   }
 
   /// Login with email and password
-  Future<UserCredential?> loginWithEmail(String email, String password) async {
+  Future<UserCredential?> loginWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -42,8 +63,8 @@ class FirebaseService {
       );
       return userCredential;
     } catch (e) {
-      print('Login error: $e');
-      return null;
+      debugPrint('Login error: $e');
+      rethrow;
     }
   }
 
@@ -52,9 +73,24 @@ class FirebaseService {
     await _auth.signOut();
   }
 
+  /// Logout (alias for signOut)
+  Future<void> logout() async {
+    await _auth.signOut();
+  }
+
+  /// Get auth state changes stream
+  Stream<User?> authStateChanges() {
+    return _auth.authStateChanges();
+  }
+
   /// Get current user ID
   String? getCurrentUserId() {
     return _auth.currentUser?.uid;
+  }
+
+  /// Get current user name
+  String? getCurrentUserName() {
+    return _auth.currentUser?.displayName ?? _auth.currentUser?.email;
   }
 
   /// Get current user
@@ -83,7 +119,7 @@ class FirebaseService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('Error creating user profile: $e');
+      debugPrint('Error creating user profile: $e');
     }
   }
 
@@ -93,7 +129,7 @@ class FirebaseService {
       DocumentSnapshot doc = await _firestore.collection('users').doc(userId).get();
       return doc.data() as Map<String, dynamic>?;
     } catch (e) {
-      print('Error getting user profile: $e');
+      debugPrint('Error getting user profile: $e');
       return null;
     }
   }
@@ -104,7 +140,7 @@ class FirebaseService {
       data['updatedAt'] = FieldValue.serverTimestamp();
       await _firestore.collection('users').doc(userId).update(data);
     } catch (e) {
-      print('Error updating user profile: $e');
+      debugPrint('Error updating user profile: $e');
     }
   }
 }

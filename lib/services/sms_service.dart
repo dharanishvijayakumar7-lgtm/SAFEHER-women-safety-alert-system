@@ -1,8 +1,10 @@
-import 'package:flutter_sms/flutter_sms.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class SMSService {
   static final SMSService _instance = SMSService._internal();
+  static const platform = MethodChannel('com.example.safeher/sms');
 
   factory SMSService() {
     return _instance;
@@ -33,7 +35,7 @@ class SMSService {
       if (!hasPermission) {
         hasPermission = await requestSmsPermission();
         if (!hasPermission) {
-          print('SMS permission not granted');
+          debugPrint('SMS permission not granted');
           return false;
         }
       }
@@ -41,18 +43,24 @@ class SMSService {
       // Sanitize phone number (remove spaces, dashes, etc.)
       String sanitizedNumber = phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
 
-      // Send SMS
-      String result = await sendSMS(
-        message: message,
-        recipients: [sanitizedNumber],
-      ).catchError((onError) {
-        print('Error sending SMS: $onError');
-        return false;
-      });
+      // Send SMS using platform channel
+      try {
+        final bool result = await platform.invokeMethod<bool>(
+          'sendSms',
+          {
+            'phoneNumber': sanitizedNumber,
+            'message': message,
+          },
+        ) ?? false;
 
-      return result == 'SMS sent!';
+        debugPrint('SMS sent to $sanitizedNumber');
+        return result;
+      } on PlatformException catch (e) {
+        debugPrint('Failed to send SMS: ${e.message}');
+        return false;
+      }
     } catch (e) {
-      print('Exception sending SMS: $e');
+      debugPrint('Exception sending SMS: $e');
       return false;
     }
   }
@@ -68,7 +76,7 @@ class SMSService {
       if (!hasPermission) {
         hasPermission = await requestSmsPermission();
         if (!hasPermission) {
-          print('SMS permission not granted');
+          debugPrint('SMS permission not granted');
           return false;
         }
       }
@@ -78,18 +86,25 @@ class SMSService {
           .map((number) => number.replaceAll(RegExp(r'[^0-9+]'), ''))
           .toList();
 
-      // Send SMS
-      String result = await sendSMS(
-        message: message,
-        recipients: sanitizedNumbers,
-      ).catchError((onError) {
-        print('Error sending SMS: $onError');
-        return false;
-      });
+      // Send SMS to each contact
+      for (final phoneNumber in sanitizedNumbers) {
+        try {
+          await platform.invokeMethod<bool>(
+            'sendSms',
+            {
+              'phoneNumber': phoneNumber,
+              'message': message,
+            },
+          );
+          debugPrint('SMS sent to $phoneNumber');
+        } catch (e) {
+          debugPrint('Error sending SMS to $phoneNumber: $e');
+        }
+      }
 
-      return result == 'SMS sent!';
+      return true;
     } catch (e) {
-      print('Exception sending SMS: $e');
+      debugPrint('Exception sending SMS: $e');
       return false;
     }
   }
@@ -106,7 +121,7 @@ class SMSService {
       if (!hasPermission) {
         hasPermission = await requestSmsPermission();
         if (!hasPermission) {
-          print('SMS permission not granted');
+          debugPrint('SMS permission not granted');
           return {};
         }
       }
@@ -125,24 +140,25 @@ class SMSService {
           String sanitizedNumber =
               phoneNumber.replaceAll(RegExp(r'[^0-9+]'), '');
 
-          String result = await sendSMS(
-            message: message,
-            recipients: [sanitizedNumber],
-          ).catchError((onError) {
-            print('Error sending SMS to $sanitizedNumber: $onError');
-            return 'failed';
-          });
+          final bool result = await platform.invokeMethod<bool>(
+            'sendSms',
+            {
+              'phoneNumber': sanitizedNumber,
+              'message': message,
+            },
+          ) ?? false;
 
-          results[phoneNumber] = result == 'SMS sent!';
+          debugPrint('Emergency SMS sent to $sanitizedNumber');
+          results[phoneNumber] = result;
         } catch (e) {
-          print('Exception sending SMS to $phoneNumber: $e');
+          debugPrint('Exception sending SMS to $phoneNumber: $e');
           results[phoneNumber] = false;
         }
       }
 
       return results;
     } catch (e) {
-      print('Exception in emergency SMS: $e');
+      debugPrint('Exception in emergency SMS: $e');
       return {};
     }
   }

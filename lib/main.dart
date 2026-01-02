@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'services/firebase_service.dart';
 import 'services/sms_service.dart';
 import 'services/trusted_contacts_service.dart';
 import 'screens/trusted_contacts_screen.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'screens/login_screen.dart';
 /* -------------------- MAIN ENTRY POINT -------------------- */
 
 void main() async {
@@ -25,7 +23,44 @@ class SafeHerApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SAFEHER',
-      home: const SafeHerHome(),
+      home: const AuthGate(),
+    );
+  }
+}
+
+/* -------------------- AUTH GATE -------------------- */
+
+class AuthGate extends StatefulWidget {
+  const AuthGate({super.key});
+
+  @override
+  State<AuthGate> createState() => _AuthGateState();
+}
+
+class _AuthGateState extends State<AuthGate> {
+  final FirebaseService _firebaseService = FirebaseService();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: _firebaseService.authStateChanges(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasData && snapshot.data != null) {
+          // User is logged in
+          return const SafeHerHome();
+        }
+
+        // User is not logged in
+        return const LoginScreen();
+      },
     );
   }
 }
@@ -191,7 +226,7 @@ Sent from SafeHer - Women Safety Alert System
         );
       }
     } catch (e) {
-      print('Error triggering SOS: $e');
+      debugPrint('Error triggering SOS: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
@@ -204,7 +239,48 @@ Sent from SafeHer - Women Safety Alert System
 
   @override
   Widget build(BuildContext context) {
+    String? userId = _firebaseService.getCurrentUserId();
+    String userName = _firebaseService.getCurrentUserName() ?? 'User';
+
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('SAFEHER'),
+        backgroundColor: Colors.red,
+        elevation: 0,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Text(
+                'Hello, $userName',
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              if (value == 'logout') {
+                await _firebaseService.logout();
+                if (mounted) {
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    '/',
+                    (route) => false,
+                  );
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'logout',
+                child: Text('Logout'),
+              ),
+            ],
+          ),
+        ],
+      ),
       body: Container(
         width: double.infinity,
         decoration: const BoxDecoration(
@@ -257,7 +333,7 @@ Sent from SafeHer - Women Safety Alert System
                       color: Colors.red,
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.red.withOpacity(0.4),
+                          color: Colors.red.withValues(alpha: 0.4),
                           blurRadius: 25,
                           spreadRadius: 5,
                         ),
