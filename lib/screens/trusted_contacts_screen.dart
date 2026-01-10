@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/trusted_contacts_service.dart';
 import '../services/firebase_service.dart';
+import '../widgets.dart';
 
 class TrustedContactsScreen extends StatefulWidget {
   const TrustedContactsScreen({super.key});
@@ -26,55 +27,64 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Trusted Contacts'),
-        backgroundColor: Colors.deepPurple,
       ),
-      body: StreamBuilder<List<TrustedContact>>(
-        stream: _contactsService.getTrustedContactsStream(userId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: DecorativeBackground(
+        child: StreamBuilder<List<TrustedContact>>(
+          stream: _contactsService.getTrustedContactsStream(userId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
 
-          List<TrustedContact> contacts = snapshot.data ?? [];
+            List<TrustedContact> contacts = snapshot.data ?? [];
 
-          if (contacts.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.contacts, size: 64, color: Colors.grey),
-                  const SizedBox(height: 16),
-                  const Text('No trusted contacts yet'),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => _showAddContactDialog(),
-                    child: const Text('Add First Contact'),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            itemCount: contacts.length,
-            itemBuilder: (context, index) {
-              TrustedContact contact = contacts[index];
-              return ContactListTile(
-                contact: contact,
-                onEdit: () => _showEditContactDialog(contact),
-                onDelete: () => _deleteContact(contact.id),
+            if (contacts.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.contacts, size: 80, color: Colors.grey[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No trusted contacts yet',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () => _showAddContactDialog(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Add First Contact'),
+                    ),
+                  ],
+                ),
               );
-            },
-          );
-        },
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: contacts.length,
+              itemBuilder: (context, index) {
+                TrustedContact contact = contacts[index];
+                return ContactListTile(
+                  contact: contact,
+                  onEdit: () => _showEditContactDialog(contact),
+                  onDelete: () => _deleteContact(contact.id),
+                );
+              },
+            );
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddContactDialog(),
-        backgroundColor: Colors.deepPurple,
         child: const Icon(Icons.add),
       ),
     );
@@ -297,23 +307,46 @@ class ContactListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: Colors.deepPurple.shade100,
+          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
           child: Icon(
             Icons.person,
-            color: Colors.deepPurple,
+            color: Theme.of(context).primaryColor,
           ),
         ),
-        title: Text(contact.name),
+        title: Text(
+          contact.name,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(contact.phoneNumber),
-            Text(
-              contact.relationship,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            const SizedBox(height: 4),
+            Row(
+              children: [
+                Icon(Icons.phone, size: 14, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Text(contact.phoneNumber),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: Theme.of(context).secondaryHeaderColor.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                contact.relationship,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Theme.of(context).primaryColorDark,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
           ],
         ),
@@ -321,11 +354,23 @@ class ContactListTile extends StatelessWidget {
           itemBuilder: (context) => [
             PopupMenuItem(
               onTap: onEdit,
-              child: const Text('Edit'),
+              child: const Row(
+                children: [
+                  Icon(Icons.edit, size: 20),
+                  SizedBox(width: 8),
+                  Text('Edit'),
+                ],
+              ),
             ),
             PopupMenuItem(
               onTap: onDelete,
-              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              child: const Row(
+                children: [
+                  Icon(Icons.delete, size: 20, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Delete', style: TextStyle(color: Colors.red)),
+                ],
+              ),
             ),
           ],
         ),
